@@ -1,14 +1,14 @@
-import Dashboard from './components/Dashboard.jsx';
-import PublicationDetails from './components/PublicationDetails.jsx';
+import DashboardPage from '../src/pages/dashboard/DashboardPage.jsx';
+import PublicationPage from '../src/pages/publication/PublicationPage.jsx';
 
 const routes = [
   {
     path: '/',
-    element: <Dashboard />,
+    element: <DashboardPage />,
   },
   {
     path: '/publication/:id',
-    element: <PublicationDetails />,
+    element: <PublicationPage />,
   },
 ];
 

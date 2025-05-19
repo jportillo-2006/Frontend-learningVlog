@@ -35,7 +35,7 @@ export const getPublications = async ({
   }
 };
 
-export const getPublicationsById = async (id) => {
+export const getPublicationById = async (id) => {
   try {
         const response = await apiClient.get(`/publication/${id}`);
         return response.data;
@@ -50,8 +50,10 @@ export const getPublicationsById = async (id) => {
 export const getCommentsByPublication = async (publicationId) => {
   try {
     const response = await apiClient.get(`/comments/publication/${publicationId}`);
+    console.log("Respuesta getCommentsByPublication:", response.data);
     return response.data;
   } catch (e) {
+    console.error("Error en getCommentsByPublication:", e);
     return { error: true, e };
   }
 };
