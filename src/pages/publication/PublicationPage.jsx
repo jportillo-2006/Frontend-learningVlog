@@ -1,111 +1,117 @@
-import { useParams } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { getCommentsByPublication, createComment, getPublicationById } from "../../services/api.jsx"
-import { CommentItem } from "../../components/comment/CommentItem"
-import { CommentForm } from "../../components/comment/CommentForm"
-import toast from "react-hot-toast"
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { getCommentsByPublication, createComment, getPublicationById } from "../../services/api.jsx";
+import { CommentItem } from "../../components/comment/CommentItem";
+import { CommentForm } from "../../components/comment/CommentForm";
+import toast from "react-hot-toast";
 
 const PublicationPage = () => {
-  const { id } = useParams()
+  const { id } = useParams();
 
-  const [publication, setPublication] = useState(null)
-  const [comments, setComments] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [publication, setPublication] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const loadData = () => {
-    setLoading(true)
+    setLoading(true);
 
     getPublicationById(id)
       .then((pubRes) => {
-        console.log("getPublicationById response:", pubRes)
         if (pubRes.error) {
-          toast.error("Error al cargar publicación")
-          setLoading(false)
+          toast.error("Error al cargar publicación");
+          setLoading(false);
         } else {
-          const publicationData = pubRes.publication
-          console.log("publicationData:", publicationData)
-          setPublication(publicationData)
+          const publicationData = pubRes.publication;
+          setPublication(publicationData);
 
-          const publicationId = publicationData._id || publicationData.uid
-          console.log("publicationId para comentarios:", publicationId)
+          const publicationId = publicationData._id || publicationData.uid;
 
           if (!publicationId) {
-            toast.error("ID de publicación no encontrado")
-            setComments([])
-            setLoading(false)
-            return
+            toast.error("ID de publicación no encontrado");
+            setComments([]);
+            setLoading(false);
+            return;
           }
 
           getCommentsByPublication(publicationId)
             .then((commentsRes) => {
-              console.log("getCommentsByPublication response:", commentsRes)
               if (commentsRes.error) {
-                toast.error("Error al cargar comentarios")
-                setComments([])
+                toast.error("Error al cargar comentarios");
+                setComments([]);
               } else {
-                setComments(commentsRes.comments)  // CORRECCIÓN: asignar solo el array de comentarios
+                setComments(commentsRes.comments);
               }
             })
             .catch(() => {
-              toast.error("Error al cargar comentarios")
-              setComments([])
+              toast.error("Error al cargar comentarios");
+              setComments([]);
             })
-            .finally(() => setLoading(false))
+            .finally(() => setLoading(false));
         }
       })
       .catch(() => {
-        toast.error("Error al cargar publicación")
-        setLoading(false)
-      })
-  }
+        toast.error("Error al cargar publicación");
+        setLoading(false);
+      });
+  };
 
   useEffect(() => {
-    loadData()
-  }, [id])
+    loadData();
+  }, [id]);
 
   const handleCommentSubmit = (data) => {
-    if (!publication) return
+    if (!publication) return;
 
-    const payload = { ...data, publication: publication._id } // CORRECCIÓN: usar _id consistente
-    console.log("Payload enviado:", payload)
-
+    const payload = { ...data, publication: publication._id };
     createComment(payload)
       .then((res) => {
         if (!res.error) {
-          toast.success("Comentario agregado")
-          loadData()
+          toast.success("Comentario agregado");
+          loadData();
         } else {
-          toast.error("Error al enviar comentario")
+          toast.error("Error al enviar comentario");
         }
       })
-      .catch(() => toast.error("Error al enviar comentario"))
-  }
+      .catch(() => toast.error("Error al enviar comentario"));
+  };
 
-  if (loading) return <p className="p-4">Cargando publicación...</p>
-  if (!publication) return <p className="p-4">Publicación no encontrada.</p>
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-40">
+        <p className="text-gray-500 text-lg">Cargando publicación...</p>
+      </div>
+    );
+  if (!publication)
+    return (
+      <div className="flex justify-center items-center h-40">
+        <p className="text-red-500 text-lg">Publicación no encontrada.</p>
+      </div>
+    );
 
   return (
-    <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold">{publication.title}</h2>
-      <p>{publication.content}</p>
-      <p className="text-sm text-gray-500">Curso: {publication.course}</p>
+    <div className="max-w-3xl mx-auto p-6 bg-white rounded-2xl shadow-md space-y-8">
+      <section>
+        <h1 className="text-3xl font-extrabold text-gray-900 mb-3">{publication.title}</h1>
+        <p className="text-gray-800 leading-relaxed whitespace-pre-line">{publication.content}</p>
+        <p className="mt-4 text-sm text-gray-500 italic">Curso: {publication.course}</p>
+      </section>
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold border-b border-gray-300 pb-2">Comentarios</h2>
 
-      <h3 className="text-xl mt-4">Comentarios</h3>
-      <CommentForm
-        publicationId={publication._id}
-        onCommentAdded={loadData}
-      />
-      <div className="space-y-2">
-        {comments.length > 0 ? (
-          comments.map(comment => (
-            <CommentItem key={comment._id} {...comment} />
-          ))
-        ) : (
-          <p className="text-gray-500">Aún no hay comentarios.</p>
-        )}
-      </div>
+        <div className="bg-gray-50 p-6 rounded-xl shadow-inner">
+          <CommentForm publicationId={publication.uid} onCommentAdded={loadData} />
+        </div>
+
+        <div className="space-y-4">
+          {comments.length > 0 ? (
+            comments.map((comment) => <CommentItem key={comment._id} {...comment} />)
+          ) : (
+            <p className="text-gray-500 italic">Aún no hay comentarios.</p>
+          )}
+        </div>
+      </section>
     </div>
-  )
-}
+  );
+};
 
-export default PublicationPage
+export default PublicationPage;
